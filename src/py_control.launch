@@ -1,4 +1,5 @@
 <launch>
     <node name="gpio_out" pkg="py_control" type="gpio_out.py" output="screen"/>
     <node name="gpio_in" pkg="py_control" type="gpio_in.py" output="screen"/>
+    <node name="grove_ad" pkg="py_control" type="grove_ad.py" output="screen"/>
 </launch>

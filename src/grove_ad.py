@@ -9,6 +9,8 @@
 # -----------------------------------------------
 
 import os
+import time
+import threading
 import rospy
 import rosparam
 import RPi.GPIO as GPIO
@@ -18,40 +20,98 @@ from grove.adc import ADC
 from py_control.srv import grove_ad_srv, grove_ad_srvResponse
 
 
-def handle(request):
-    """
-    サービス
-    Parameters
-    ----------
-    """
-    if request.Ch in range(0, 7):
-        # ADの値を読み込み
-        adc = ADC()
-        val_v = adc.read_voltage(request.Ch)
-        # ログの表示
-        rospy.loginfo("Grove AD [%sch]: %s" % (request.Ch, val_v))
-        # ADの値を返す
-        return grove_ad_srvResponse(val_v)
+class Grove_AD:
+    # ノード名
+    SelfNode = "grove_ad"
+    # トピック名
+    SelfTopic = "grove_ad_val"
+    # AD変換の最大チャネル数
+    AD_ChMax = 7
+    # 現在のAD電圧値リスト
+    L_Ad_Volt = []
+    # AD変換の読み込み周期
+    _PROCINTERVAL = 0.4
+
+    def __init__(self):
+        """
+        コンストラクタ
+        Parameters
+        ----------
+        """
+        # 初期化
+        rospy.loginfo("[%s] Initializing..." % (os.path.basename(__file__)))
+        # ノードの初期化と名称設定
+        rospy.init_node(self.SelfNode)
+        rospy.loginfo("[%s] Do..." % (os.path.basename(__file__)))
+        # サービスの登録
+        self.service = rospy.Service(self.SelfTopic, grove_ad_srv, self.handle)
+
+    def handle(self, request):
+        """
+        サービス
+        Parameters
+        ----------
+        """
+        #指定のチャネルが配列のサイズ以内か確認
+        if request.Ch < len(self.L_Ad_Volt):
+            # ログの表示
+            rospy.logdebug("Grove AD [%sch]: %s" %
+                           (request.Ch, self.L_Ad_Volt[request.Ch]))
+            return grove_ad_srvResponse(self.L_Ad_Volt[request.Ch])
+        else:
+            rospy.logwarn("Grove AD ch out of range.")
+
+    def thread_do(self):
+        """
+        スレッドのスタート
+        Parameters
+        ----------
+        """
+        # スレッドをデーモンモードで開始
+        thread_obj = threading.Thread(target=self.thread)
+        thread_obj.setDaemon(True)
+        thread_obj.start()
+
+    def thread(self):
+        """
+        スレッド：GroveADの読み込み
+        Parameters
+        ----------
+        """
+        while True:
+            adc = ADC()
+            # 一時格納リスト
+            L_Ad_Volt_buf = []
+            # 全チャネル読み込み
+            for i in range(0, self.AD_ChMax):
+                val = 0
+                try:
+                    # 読み込み
+                    val = adc.read_voltage(i)
+                except:
+                    # エラーの時は強制-1
+                    val = -1
+                    rospy.logwarn("Grove AD %s ch error." % i)
+                # 一時格納リストに追加
+                L_Ad_Volt_buf.append(val)
+            #スライスを使って、AD電圧値リストにコピー
+            self.L_Ad_Volt = L_Ad_Volt_buf[:]
+            #正常更新    
+            rospy.logdebug("Grove AD Updated. (%s channels)" % len(self.L_Ad_Volt))
+            # スリープ
+            time.sleep(self._PROCINTERVAL)
 
 
 if __name__ == '__main__':
     """
-    メイン関数
-    Parameters
-    ----------
+    メイン
     """
 
-    # 初期化
-    rospy.loginfo("[%s] Initializing..." % (os.path.basename(__file__)))
-
     try:
-        rospy.loginfo("[%s] Do..." % (os.path.basename(__file__)))
-
-        # ノードの初期化と名称設定
-        rospy.init_node('grove_ad')
-
-        service = rospy.Service('grove_ad_val', grove_ad_srv, handle)
-
+        # インスタンスを生成
+        gad = Grove_AD()
+        # スレッドのスタート
+        gad.thread_do()
         # プロセス終了までアイドリング
         rospy.spin()
 

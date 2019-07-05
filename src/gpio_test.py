@@ -27,7 +27,7 @@ def callback(message):
     rospy.loginfo("Button Port: %s, Val: %s" % (message.port, message.value))
 
 
-def publisher():
+def do():
     """
     publish関数
     Parameters
@@ -88,14 +88,19 @@ def publisher():
         # テスト：GROVE AD
         # ------------------------------
         # word_counterが呼び出されたときにサービスコールが行われる
-        ad_0 = grove_ad(0)
-        ad_1 = grove_ad(1)
-        ad_2 = grove_ad(2)
-        ad_3 = grove_ad(3)
-        ad_4 = grove_ad(4)
-        ad_5 = grove_ad(5)
-        rospy.loginfo("Grove AD [%sch]:%s [%sch]:%s [%sch]:%s [%sch]:%s" %
-                      (0, ad_0, 2, ad_2, 3, ad_3, 4, ad_4))
+        try:
+            ad_0 = grove_ad(0)
+            ad_1 = grove_ad(1)
+            ad_2 = grove_ad(2)
+            ad_3 = grove_ad(3)
+            ad_4 = grove_ad(4)
+            ad_5 = grove_ad(5)
+            rospy.loginfo("Grove AD [%sch]:%s [%sch]:%s [%sch]:%s [%sch]:%s" %
+                        (0, ad_0, 2, ad_2, 3, ad_3, 4, ad_4))
+        except:
+            pass
+        finally:
+            pass
 
 
 if __name__ == '__main__':
@@ -110,7 +115,7 @@ if __name__ == '__main__':
     try:
         # 実行
         rospy.loginfo("[%s] Do..." % (os.path.basename(__file__)))
-        publisher()
+        do()
     except rospy.ROSInterruptException:
         # 停止
         pass
