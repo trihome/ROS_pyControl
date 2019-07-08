@@ -12,12 +12,16 @@ import os
 import rospy
 import rosparam
 import RPi.GPIO as GPIO
+import conf as c
 
 # 生成したメッセージのヘッダファイル
 from py_control.msg import gpio_mes
 
 
 class Gpio_Out:
+    """
+    GPIO出力
+    """
     # ノード名
     SelfNode = "gpio_out"
     # トピック名
@@ -30,6 +34,8 @@ class Gpio_Out:
         コンストラクタ
         Parameters
         ----------
+        argPin : int
+            入力ピン番号
         """
         # 初期化
         rospy.loginfo("[%s] Initializing..." % (os.path.basename(__file__)))
@@ -47,7 +53,7 @@ class Gpio_Out:
         Parameters
         ----------
         """
-        #GPIOを解放
+        # GPIOを解放
         GPIO.cleanup()
 
     def initGpio(self):
@@ -73,16 +79,27 @@ class Gpio_Out:
             メッセージ
         """
         # ログの表示
-        rospy.logdebug("Port(OUT): %s, Val: %s" % (message.port, message.value))
-        # 受け取ったポート番号が、配列長を超えていないこと
+        rospy.logdebug("Port(OUT): %s, Val: %s" %
+                       (message.port, message.value))
         if message.port < len(self.GpioPin):
+            # 受け取ったポート番号が、配列長を超えていないこと
             if message.value == 1:
                 # 指定の番号をON
                 GPIO.output(self.GpioPin[message.port], GPIO.HIGH)
             else:
                 # 指定の番号をOFF
                 GPIO.output(self.GpioPin[message.port], GPIO.LOW)
+        elif message.port == 99:
+            # ポート99番を指定されたときは、全ポートを同時操作
+            for i in self.GpioPin:
+                if message.value == 1:
+                    # 全てON
+                    GPIO.output(i, GPIO.HIGH)
+                else:
+                    # 全てOFF
+                    GPIO.output(i, GPIO.LOW)
         else:
+            # それ以外の時はエラー
             rospy.logwarn("Port %s is not found." % (message.port))
 
 
@@ -94,7 +111,7 @@ if __name__ == '__main__':
     """
     try:
         # インスタンスを生成
-        gpo = Gpio_Out([26, 19, 13, 6, 5, 22, 27, 17])
+        gpo = Gpio_Out(c.GPIO_OUT)
         # プロセス終了までアイドリング
         rospy.spin()
     except rospy.ROSInterruptException:

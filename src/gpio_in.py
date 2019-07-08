@@ -12,17 +12,21 @@ import os
 import rospy
 import rosparam
 import RPi.GPIO as GPIO
+import conf as c
 
 # 生成したメッセージのヘッダファイル
 from py_control.msg import gpio_mes
 
 
 class Gpio_In:
+    """
+    GPIO入力
+    """
     # ノード名
     SelfNode = "gpio_in"
     # トピック名
     SelfTopic = "mes_gpio_in"
-    # GPIO出力対象のBCM番号
+    # GPIO入力対象のBCM番号
     GpioPin = []
 
     def __init__(self, argPin):
@@ -30,10 +34,14 @@ class Gpio_In:
         コンストラクタ
         Parameters
         ----------
+        argPin : int
+            入力ピン番号
         """
         # 初期化
         rospy.loginfo("[%s] Initializing..." % (os.path.basename(__file__)))
+        # ピン番号の設定
         self.GpioPin = argPin
+        # GPIOの入力初期化
         self.initGpio()
         # ノードの初期化と名称設定
         rospy.init_node(self.SelfNode)
@@ -46,10 +54,8 @@ class Gpio_In:
     def __del__(self):
         """
         デストラクタ
-        Parameters
-        ----------
         """
-        #GPIOを解放
+        # GPIOを解放
         GPIO.cleanup()
 
     def initGpio(self):
@@ -80,7 +86,8 @@ class Gpio_In:
         """
         # 送信するメッセージの作成
         msg = gpio_mes()
-        msg.port = gpio_pin
+        # BCMポート番号をX端子番号に読み替え
+        msg.port = self.GpioPin.index(gpio_pin)
         msg.value = 1
         # 送信
         self.pub.publish(msg)
@@ -98,7 +105,7 @@ if __name__ == '__main__':
     rospy.loginfo("[%s] Initializing..." % (os.path.basename(__file__)))
     try:
         # インスタンスを生成
-        gpo = Gpio_In([21, 20, 16, 12, 7, 8, 25, 24])
+        gpo = Gpio_In(c.GPIO_IN)
         # プロセス終了までアイドリング
         rospy.spin()
     except rospy.ROSInterruptException:

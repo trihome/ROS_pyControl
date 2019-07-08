@@ -54,6 +54,7 @@ add_message_files(
 add_service_files(
   FILES
   grove_ad_srv.srv
+  mon_workerstat_srv.srv
 )
 
 ## Generate actions in the 'action' folder

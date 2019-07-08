@@ -24,7 +24,7 @@ class Grove_AD:
     # ノード名
     SelfNode = "grove_ad"
     # トピック名
-    SelfTopic = "grove_ad_val"
+    SelfTopic = "srv_grove_ad"
     # AD変換の最大チャネル数
     AD_ChMax = 7
     # 現在のAD電圧値リスト
@@ -35,8 +35,6 @@ class Grove_AD:
     def __init__(self):
         """
         コンストラクタ
-        Parameters
-        ----------
         """
         # 初期化
         rospy.loginfo("[%s] Initializing..." % (os.path.basename(__file__)))
@@ -48,11 +46,13 @@ class Grove_AD:
 
     def handle(self, request):
         """
-        サービス
+        指定chの問い合わせを受けたらAD値を回答
         Parameters
         ----------
+        request : grove_ad_srv
+            メッセージ
         """
-        #指定のチャネルが配列のサイズ以内か確認
+        # 指定のチャネルが配列のサイズ以内か確認
         if request.Ch < len(self.L_Ad_Volt):
             # ログの表示
             rospy.logdebug("Grove AD [%sch]: %s" %
@@ -64,8 +64,6 @@ class Grove_AD:
     def thread_do(self):
         """
         スレッドのスタート
-        Parameters
-        ----------
         """
         # スレッドをデーモンモードで開始
         thread_obj = threading.Thread(target=self.thread)
@@ -74,9 +72,7 @@ class Grove_AD:
 
     def thread(self):
         """
-        スレッド：GroveADの読み込み
-        Parameters
-        ----------
+        スレッド：GroveADを定期的に読み込み
         """
         while True:
             adc = ADC()
@@ -94,10 +90,11 @@ class Grove_AD:
                     rospy.logwarn("Grove AD %s ch error." % i)
                 # 一時格納リストに追加
                 L_Ad_Volt_buf.append(val)
-            #スライスを使って、AD電圧値リストにコピー
+            # スライスを使って、AD電圧値リストにコピー
             self.L_Ad_Volt = L_Ad_Volt_buf[:]
-            #正常更新    
-            rospy.logdebug("Grove AD Updated. (%s channels)" % len(self.L_Ad_Volt))
+            # 正常更新
+            rospy.logdebug("Grove AD Updated. (%s channels)" %
+                           len(self.L_Ad_Volt))
             # スリープ
             time.sleep(self._PROCINTERVAL)
 

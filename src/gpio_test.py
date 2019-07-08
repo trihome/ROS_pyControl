@@ -38,13 +38,13 @@ def do():
     # anonymousをTrueにして、ノード名を自動で変更して複数接続OKとする
     rospy.init_node('gpio_test', anonymous=True)
 
-    # 指定のトピックからメッセージを送信
+    # 指定のトピックへメッセージを送信
     pub_out = rospy.Publisher('mes_gpio_out', gpio_mes, queue_size=10)
     # 指定のトピックからメッセージを受信
     rospy.Subscriber("mes_gpio_in", gpio_mes, callback)
 
-    # ローカルプロキシにサービス名(word_count)と型(WordCount)を設定
-    grove_ad = rospy.ServiceProxy('grove_ad_val', grove_ad_srv)
+    # ローカルプロキシにサービス名(srv_grove_ad)と型(grove_ad_srv)を設定
+    grove_ad = rospy.ServiceProxy('srv_grove_ad', grove_ad_srv)
 
     # 送信周期(Hz)を設定
     rate = rospy.Rate(1)
