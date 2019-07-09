@@ -61,7 +61,7 @@ class Grove_AD:
         else:
             rospy.logwarn("Grove AD ch out of range.")
 
-    def thread_do(self):
+    def thread_init(self):
         """
         スレッドのスタート
         """
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         # インスタンスを生成
         gad = Grove_AD()
         # スレッドのスタート
-        gad.thread_do()
+        gad.thread_init()
         # プロセス終了までアイドリング
         rospy.spin()
 

@@ -79,7 +79,6 @@ class Mon_WorkerStat:
         request : grove_ad_srv
             メッセージ
         """
-
         # 各ランプの状態を回答
         return mon_workerstat_srvResponse(
             self.Stat[0], self.Stat[1], self.Stat[2],
@@ -120,7 +119,7 @@ class Mon_WorkerStat:
         # 色ボタンごとのステータスの更新
         # 0:RED  1:GREEN  2:YELLOW  3:UMBER  4:BLUE  5:WHITE
         i = 0
-        for j in c.GPIO_WORKERSTAT:
+        for j in c.GPIO_WORKERSTATORDER:
             if j == "RED":
                 self.Stat[0] = stat[i]
             if j == "GREEN":
@@ -164,7 +163,7 @@ if __name__ == '__main__':
     try:
         # インスタンスを生成
         mws = Mon_WorkerStat(c.GPIO_IN)
-        #初期化
+        # 初期化
         mws.StatusReset()
         # プロセス終了までアイドリング
         rospy.spin()
