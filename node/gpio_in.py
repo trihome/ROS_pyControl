@@ -55,8 +55,7 @@ class Gpio_In:
         """
         デストラクタ
         """
-        # GPIOを解放
-        GPIO.cleanup()
+        pass
 
     def initGpio(self):
         """
@@ -113,4 +112,6 @@ if __name__ == '__main__':
         pass
     finally:
         # 終了
+        # GPIOを解放
+        GPIO.cleanup()
         rospy.loginfo("[%s] Done." % (os.path.basename(__file__)))

@@ -1,8 +1,8 @@
 #!/usr/bin/env /usr/bin/python
 # -*- coding: utf-8 -*-
 # -----------------------------------------------
-# ROS Node
-# Monitor the status of workers
+# ROS Node (sub module)
+# Know the status of the device by looking at the lamp
 #
 # The MIT License (MIT)
 # Copyright (C) 2019 myasu.
