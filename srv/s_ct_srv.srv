@@ -1,0 +1,4 @@
+int16 Raw
+float32 Volt
+---
+int16 State

@@ -99,6 +99,8 @@ class MainProc:
         """
         自分のシグナルタワーの状態を更新
         """
+        #
+        rospy.loginfo("ST: %s" % arg_Color)
         # 指定のトピックへメッセージを送信
         pub = rospy.Publisher('mes_gpio_out', gpio_mes, queue_size=10)
         # 送信するメッセージの作成

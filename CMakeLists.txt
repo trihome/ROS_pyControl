@@ -56,6 +56,9 @@ add_service_files(
   grove_ad_srv.srv
   mon_workerstat_srv.srv
   mon_sigtowerstat_srv.srv
+  s_ct_srv.srv
+  s_sigtower_srv.srv
+  s_workerstat_srv.srv
 )
 
 ## Generate actions in the 'action' folder
