@@ -40,7 +40,7 @@ class Mon_WorkerStat:
     STAT_ON = 1
 
     # 現在の作業者ボタンの状態
-    # 0:RED  1:GREEN  2:YELLOW  3:UMBER  4:BLUE  5:WHITE
+    # 0:RED  1:YELLOW  2:GREEN  3:BLUE  4:WHITE  5:UMBER  
     Stat = [STAT_NONE, STAT_NONE, STAT_NONE, STAT_NONE, STAT_NONE, STAT_NONE]
 
     def __init__(self, argPin):
@@ -122,15 +122,15 @@ class Mon_WorkerStat:
         for j in c.GPIO_WORKERSTATORDER:
             if j == "RED":
                 self.Stat[0] = stat[i]
-            if j == "GREEN":
-                self.Stat[1] = stat[i]
             if j == "YELLOW":
+                self.Stat[1] = stat[i]
+            if j == "GREEN":
                 self.Stat[2] = stat[i]
-            if j == "UMBER":
-                self.Stat[3] = stat[i]
             if j == "BLUE":
-                self.Stat[4] = stat[i]
+                self.Stat[3] = stat[i]
             if j == "WHITE":
+                self.Stat[4] = stat[i]
+            if j == "UMBER":
                 self.Stat[5] = stat[i]
             else:
                 pass

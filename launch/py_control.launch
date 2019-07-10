@@ -4,4 +4,5 @@
     <node name="grove_ad" pkg="py_control" type="grove_ad.py" output="screen"/>
     <node name="mon_workerstat" pkg="py_control" type="mon_workerstat.py" output="screen"/>
     <node name="mon_sigtowerstat" pkg="py_control" type="mon_sigtowerstat.py" output="screen"/>
+    <node name="storage" pkg="py_control" type="storage.py" output="screen"/>
 </launch>

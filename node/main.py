@@ -21,6 +21,9 @@ from py_control.msg import gpio_mes
 from py_control.srv import mon_workerstat_srv, mon_workerstat_srvResponse
 from py_control.srv import mon_sigtowerstat_srv, mon_sigtowerstat_srvResponse
 from py_control.srv import grove_ad_srv, grove_ad_srvResponse
+from py_control.srv import s_ct_srv, s_ct_srvResponse
+from py_control.srv import s_sigtower_srv, s_sigtower_srvResponse
+from py_control.srv import s_workerstat_srv, s_workerstat_srvResponse
 
 
 class MainProc:
@@ -58,8 +61,11 @@ class MainProc:
             'srv_mon_sigtowerstat', mon_sigtowerstat_srv)
         mon_workerstat = rospy.ServiceProxy(
             'srv_mon_workerstat', mon_workerstat_srv)
+        storage_st = rospy.ServiceProxy('srv_storage_st', s_sigtower_srv)
+        storage_ws = rospy.ServiceProxy('srv_storage_ws', s_workerstat_srv)
+        storage_ct = rospy.ServiceProxy('srv_storage_ct', s_ct_srv)
         # 処理周期(Hz)を設定
-        rate = rospy.Rate(0.1)
+        rate = rospy.Rate(0.033)
         # シグナルタワーの色変更
         self.UpdateSigTower(2)
         # メインループ
@@ -68,20 +74,27 @@ class MainProc:
                 #
                 # ステップ１：設備シグナルタワーの状態
                 #
+                #問い合わせ
                 sts = mon_sigtowerstat()
                 rospy.loginfo("< SigTow > : R %s, Y %s, G %s, B %s, W %s" %
                               (sts.Red, sts.Yellow, sts.Green, sts.Blue, sts.White))
+                #データベース書き込み
+                sst = storage_st(sts.Red, sts.Yellow, sts.Green, sts.Blue, sts.White)
                 #
                 # ステップ２：作業者の状態
                 #
                 ws = mon_workerstat()
-                rospy.loginfo("< Worker > : R %s, G %s, Y %s, U %s, B %s, W %s" %
-                              (ws.Red, ws.Green, ws.Yellow, ws.Umber, ws.Blue, ws.White))
+                rospy.loginfo("< Worker > : R %s, Y %s, G %s, B %s, W %s, U %s" %
+                              (ws.Red, ws.Yellow, ws.Green, ws.Blue, ws.White, ws.Umber))
+                #データベース書き込み
+                sws = storage_ws(ws.Red, ws.Yellow, ws.Green, ws.Blue, ws.White, ws.Umber)
                 #
                 # ステップ３：CTの電流値
                 #
                 ad = grove_ad(0)
-                rospy.loginfo("< CT     > : %s" % (ad.Val_VOLT))
+                rospy.loginfo("< CT     > : %s(V)" % (ad.Val_VOLT))
+                #データベース書き込み
+                sct = storage_ct(0, ad.Val_VOLT)
                 #
                 # ステップ４：ストレージに書き込み
                 #

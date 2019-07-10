@@ -86,8 +86,7 @@ class Storage:
             メッセージ
         """
         # 文字の組み立てとレコードの追加
-        state = ("%s" % (request.Raw))
-        self.A_Ct(state)
+        self.A_Ct(str(request.Volt))
         # 各ランプの状態を回答
         return s_ct_srvResponse(0)
 
@@ -131,7 +130,7 @@ class Storage:
             # 異常ランプを点滅
             pass
 
-    def A_Ct(self, arg_CtRaw):
+    def A_Ct(self, arg_CtVolt):
         """
         レコードの追加・CT
         """
@@ -139,13 +138,13 @@ class Storage:
         __db = DbMssql.DbMssql()
         # SQLServerに登録
         ret = __db.AddToMssql(("%s" % os.uname()[1]),
-                              arg_CtRaw,
-                              "CTRaw.mLI",
+                              arg_CtVolt,
+                              "CT.mLI",
                               cl._DETECT_LOCAL_ROOM,
                               cl._DETECT_LOCAL_REGION,
                               cl._DETECT_LOCAL_ORDER, 30, "")
         # ログ
-        rospy.loginfo(" * sql : Ct > %s" % (arg_CtRaw))
+        rospy.loginfo(" * sql : Ct > %s" % (arg_CtVolt))
         # データベースの異常があったとき
         if ret < 0:
             # 異常ランプを点滅
