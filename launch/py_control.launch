@@ -1,8 +1,9 @@
 <launch>
-    <node name="gpio_out" pkg="py_control" type="gpio_out.py" output="screen"/>
-    <node name="gpio_in" pkg="py_control" type="gpio_in.py" output="screen"/>
-    <node name="grove_ad" pkg="py_control" type="grove_ad.py" output="screen"/>
-    <node name="mon_workerstat" pkg="py_control" type="mon_workerstat.py" output="screen"/>
-    <node name="mon_sigtowerstat" pkg="py_control" type="mon_sigtowerstat.py" output="screen"/>
-    <node name="storage" pkg="py_control" type="storage.py" output="screen"/>
+    <node name="gpio_in" pkg="py_control" type="gpio_in.py" output="screen" respawn="true"/>
+    <node name="gpio_out" pkg="py_control" type="gpio_out.py" output="screen" respawn="true"/>
+    <node name="grove_ad" pkg="py_control" type="grove_ad.py" output="screen" respawn="true"/>
+    <node name="mon_workerstat" pkg="py_control" type="mon_workerstat.py" output="screen" respawn="true"/>
+    <node name="mon_sigtowerstat" pkg="py_control" type="mon_sigtowerstat.py" output="screen" respawn="true"/>
+    <!-- <node name="storage" pkg="py_control" type="storage.py" output="screen" respawn="true"/> -->
+    <!-- <node name="main" pkg="py_control" type="main.py" output="screen" respawn="true"/> -->
 </launch>
