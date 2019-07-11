@@ -9,12 +9,17 @@
 # Copyright (C) 2019 myasu.
 # -----------------------------------------------
 
+import datetime
 import os
-import time
-import threading
+import Queue
 import rospy
 import rosparam
+import sqlite3
+import time
+import threading
+# ローカル
 import DbMssql
+import DbSqlite
 import conf as c
 import conf_local as cl
 # 生成したメッセージのヘッダファイル
@@ -31,6 +36,11 @@ class Storage:
     SelfNode = "storage"
     # トピック名
     SelfTopic = "srv_" + SelfNode
+
+    # キュー
+    qworkerstat = Queue.Queue()
+    qsigtower = Queue.Queue()
+    qct = Queue.Queue()
 
     def __init__(self):
         """
@@ -57,24 +67,34 @@ class Storage:
         request : s_sigtower_srv
             メッセージ
         """
+        # 現在時刻を取得
+        dtnow = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         # 文字の組み立てとレコードの追加
         if request.White >= 0:
             state = ("%s%s%s%s%s" %
                      (request.White, request.Blue, request.Green, request.Yellow, request.Red))
-            self.A_SigTower(state, 5)
+            # キューに追加
+            self.qsigtower.put([state, 5, dtnow])
+            # self.A_SigTower(state, 5)
         elif request.Blue >= 0:
             state = ("%s%s%s%s" %
                      (request.Blue, request.Green, request.Yellow, request.Red))
-            self.A_SigTower(state, 4)
+            self.qsigtower.put([state, 4, dtnow])
+            # self.A_SigTower(state, 4)
         elif request.Green >= 0:
             state = ("%s%s%s" % (request.Green, request.Yellow, request.Red))
-            self.A_SigTower(state, 3)
+            self.qsigtower.put([state, 3, dtnow])
+            # self.A_SigTower(state, 3)
         elif request.Yellow >= 0:
             state = ("%s%s" % (request.Yellow, request.Red))
-            self.A_SigTower(state, 2)
+            self.qsigtower.put([state, 2, dtnow])
+            # self.A_SigTower(state, 2)
         elif request.Red >= 0:
             state = ("%s" % (request.Red))
-            self.A_SigTower(state, 1)
+            self.qsigtower.put([state, 1, dtnow])
+            # self.A_SigTower(state, 1)
+        # ログ
+        rospy.loginfo(" * queue : SigTower [%s] > %s" % (0, state))
         return s_sigtower_srvResponse(0)
 
     def handle_ct(self, request):
@@ -85,9 +105,14 @@ class Storage:
         request : s_ct_srv
             メッセージ
         """
+        # 現在時刻を取得
+        dtnow = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+        # キューに追加
+        self.qct.put([str(request.Volt), dtnow])
         # 文字の組み立てとレコードの追加
-        self.A_Ct(str(request.Volt))
-        # 各ランプの状態を回答
+        # self.A_Ct(str(request.Volt))
+        # ログ
+        rospy.loginfo(" * queue : Ct [%s] > %s" % (0, str(request.Volt)))
         return s_ct_srvResponse(0)
 
     def handle_ws(self, request):
@@ -98,77 +123,103 @@ class Storage:
         request : s_ct_srv
             メッセージ
         """
+        # 現在時刻を取得
+        dtnow = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         # 文字の組み立てとレコードの追加
         state = ("%s%s%s%s" %
-                    (request.Red, request.Yellow, request.Green, request.Blue))
-        self.A_Ws(state)
-        # 各ランプの状態を回答
+                 (request.Red, request.Yellow, request.Green, request.Blue))
+        # キューに追加
+        self.qworkerstat.put([state, dtnow])
+        # self.A_Ws(state)
+        # ログ
+        rospy.loginfo(" * queue : Ws [%s] > %s" % (0, state))
         return s_workerstat_srvResponse(0)
 
-    def A_SigTower(self, arg_State, arg_SigCount=3):
+    def thread_init(self):
         """
-        レコードの追加・シグナルタワー
+        スレッドのスタート
         """
-        # CCM識別子
-        ccm = ["SigTower1.mLI", "SigTower2.mLI",
-               "SigTower3.mLI", "SigTower4.mLI", "SigTower5.mLI"]
-        arg_SigCount -= 1
-        # インスタンス生成
-        __db = DbMssql.DbMssql()
-        # SQLServerに登録
-        ret = __db.AddToMssql(("%s" % os.uname()[1]),
-                              arg_State,
-                              ccm[arg_SigCount],
-                              cl._DETECT_LOCAL_ROOM,
-                              cl._DETECT_LOCAL_REGION,
-                              cl._DETECT_LOCAL_ORDER, 30, "")
-        # ログ
-        rospy.loginfo(" * sql : SigTower [%s] > %s" %
-                      (ccm[arg_SigCount], arg_State))
-        # データベースの異常があったとき
-        if ret < 0:
-            # 異常ランプを点滅
-            pass
+        # スレッドをデーモンモードで開始
+        thread_obj = threading.Thread(target=self.thread_do)
+        thread_obj.setDaemon(True)
+        thread_obj.start()
 
-    def A_Ct(self, arg_CtVolt):
+    def thread_do(self):
         """
-        レコードの追加・CT
+        スレッド
         """
         # インスタンス生成
-        __db = DbMssql.DbMssql()
-        # SQLServerに登録
-        ret = __db.AddToMssql(("%s" % os.uname()[1]),
-                              arg_CtVolt,
-                              "CT.mLI",
-                              cl._DETECT_LOCAL_ROOM,
-                              cl._DETECT_LOCAL_REGION,
-                              cl._DETECT_LOCAL_ORDER, 30, "")
-        # ログ
-        rospy.loginfo(" * sql : Ct > %s" % (arg_CtVolt))
-        # データベースの異常があったとき
-        if ret < 0:
-            # 異常ランプを点滅
-            pass
+        self.__dbm = DbMssql.DbMssql()
+        self.__dbs = DbSqlite.DbSqlite()
+        # データベースへの書き込み処理
+        while True:
+            #
+            # SQLServerの生死確認
+            #
+            if self.__dbm.is_connectable() == False:
+                rospy.logwarn("SQLServer is dead.")
+                time.sleep(c.DB_MSSQL_APPEND_INTERVAL)
+                # ホストから応答無いときは以降の処理をしない
+                continue
+            #
+            # STEP1:シグナルタワー
+            #
+            # CCM識別子の定義
+            ccm = ["SigTower1.mLI", "SigTower2.mLI",
+                   "SigTower3.mLI", "SigTower4.mLI", "SigTower5.mLI"]
+            # キューを順次呼び出し
+            while not self.qsigtower.empty():
+                buf = self.qsigtower.get()
+                # SQLServerに登録
+                self.add_record(ccm[buf[1]], buf[0], buf[2])
 
-    def A_Ws(self, arg_State):
-        """
-        レコードの追加・作業者状態
-        """
-        # インスタンス生成
-        __db = DbMssql.DbMssql()
-        # SQLServerに登録
-        ret = __db.AddToMssql(("%s" % os.uname()[1]),
-                              arg_State,
-                              "WorkerStat4.mLI",
-                              cl._DETECT_LOCAL_ROOM,
-                              cl._DETECT_LOCAL_REGION,
-                              cl._DETECT_LOCAL_ORDER, 30, "")
-        # ログ
-        rospy.loginfo(" * sql : Worker > %s" % (arg_State))
-        # データベースの異常があったとき
-        if ret < 0:
-            # 異常ランプを点滅
+            #
+            # STEP2:作業者状態
+            #
+            # キューを順次呼び出し
+            while not self.qworkerstat.empty():
+                buf = self.qworkerstat.get()
+                # SQLServerに登録
+                self.add_record("WorkerStat4.mLI", buf[0], buf[1])
+            #
+            # STEP3:CT
+            #
+            # キューを順次呼び出し
+            while not self.qct.empty():
+                buf = self.qct.get()
+                # SQLServerに登録
+                self.add_record("CT.mLI", buf[0], buf[1])
+            #
+            # STEP4:書き込みできなかったデータを再書き込み
+            #
             pass
+            #
+            # 次の処理までウェイト
+            #
+            time.sleep(c.DB_MSSQL_APPEND_INTERVAL)
+
+    def add_record(self, arg_CCM, arg_val, arg_date):
+        """
+        レコードの追加
+        """
+        ret = self.__dbm.add_to_table(("%s" % os.uname()[1]),
+                                      arg_val,
+                                      ("%s" % (arg_CCM)),
+                                      cl._DETECT_LOCAL_ROOM,
+                                      cl._DETECT_LOCAL_REGION,
+                                      cl._DETECT_LOCAL_ORDER, 30, "",
+                                      arg_date)
+        # 戻り値確認
+        if ret < 0:
+            # 負の値の時は書き込み失敗
+            #SQLiteに退避
+            self.__dbs.add_to_table([arg_date, arg_CCM, arg_val])
+            rospy.logwarn("data saving")
+        else:
+            # 正常書き込み
+            rospy.loginfo(" * sql   : [%s] (%s) > %s" %
+                          (arg_CCM, arg_date, arg_val))
+        return ret
 
 
 if __name__ == '__main__':
@@ -179,6 +230,8 @@ if __name__ == '__main__':
     try:
         # インスタンスを生成
         sr = Storage()
+        # スレッドスタート
+        sr.thread_init()
         # プロセス終了までアイドリング
         rospy.spin()
 

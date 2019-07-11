@@ -8,11 +8,14 @@
 # The MIT License (MIT)
 # Copyright (C) 2019 myasu.
 # -----------------------------------------------
-import pymssql
-import errno
-import sys
 import datetime
+import errno
+import pymssql
+import rospy
 import subprocess
+import sys
+#ローカル
+import ComFunctions
 
 # ----------------------------------
 # 定数
@@ -47,8 +50,8 @@ class DbMssql:
         arg_verbose:bool
             表示を有効化
         """
-        # 引数の代入
-        self.__verbose = arg_verbose
+        # 共通処理クラスの宣言と引数の代入
+        self.__cf = ComFunctions.ComFunctions(arg_verbose)
 
     def __del__(self):
         """
@@ -56,18 +59,7 @@ class DbMssql:
         """
         pass
 
-    def prtmes(self, arg_message):
-        """
-        処理メッセージ
-        Parameters
-        ----------
-        arg_message:string
-            メッセージ
-        """
-        if self.__verbose:
-            print(arg_message)
-
-    def is_connectable(self, arg_host):
+    def is_connectable(self, arg_host=_MSSQL_HOST):
         """
         ホストの死活チェック
         Parameters
@@ -86,19 +78,20 @@ class DbMssql:
             # aliveなら0が帰ってくるので、そのときはtrueを返す
             return ping.returncode == 0
         except Exception as e:
-            self.prtmes(" ! Error : %s" % e)
+            rospy.logerror("%s" % e)
+            return False
 
-    def AddToMssql(self, arg_IP, arg_data,
+    def add_to_table(self, arg_IP, arg_data,
                    arg_type, arg_room, arg_region,
-                   arg_order, arg_priority, arg_dataa):
+                   arg_order, arg_priority, arg_dataa,
+                   arg_date='2019/1/1 0:0:0'):
         """
         1レコード書き込み
         """
-
         # SQLServerの生死確認
         if self.is_connectable(_MSSQL_HOST) == False:
-            self.prtmes(" ! Worning : %s is dead." % _MSSQL_HOST)
-            # ホストから応答無いときは移行の処理をしない
+            rospy.logwarn("%s is dead." % _MSSQL_HOST)
+            # ホストから応答無いときは以降の処理をしない
             return -1
 
         try:
@@ -106,13 +99,18 @@ class DbMssql:
             # python2は引数の変数指定が無いと以下のエラー
             # (Connection to the database failed for an unknown reason.)
             self.conn = pymssql.connect(host=_MSSQL_HOST,
-                                   user=_MSSQL_USER,
-                                   password=_MSSQL_PW,
-                                   database=_MSSQL_DATABASE)
-
+                                        user=_MSSQL_USER,
+                                        password=_MSSQL_PW,
+                                        database=_MSSQL_DATABASE)
             # 現在時刻
-            dtnow = datetime.datetime.now()
-
+            #dtnow = datetime.datetime.now()
+            #日付の書き込みモードの判定
+            if arg_date == '2019/1/1 0:0:0':
+                #省略時はサーバ側の時刻で自動入力
+                sqldate = "GETDATE()"
+            else:
+                #引数の時刻を流用
+                sqldate = arg_date
             # 書き込み
             cursor = self.conn.cursor()
             cursor.execute(
@@ -136,7 +134,7 @@ class DbMssql:
                         %s  ,
                         %s  ,
                         '%s',
-                        GETDATE()
+                        '%s'
                     ) """ % (
                     arg_IP,
                     arg_data,
@@ -145,17 +143,18 @@ class DbMssql:
                     arg_region,
                     arg_order,
                     arg_priority,
-                    arg_dataa
+                    arg_dataa,
+                    sqldate
                 )
             )
             self.conn.commit()
-
+        #例外
         except Exception as e:
-            self.prtmes(" ! Error : %s" % e)
-            # sys.exit(0)
+            rospy.logerror("%s" % e)
             return -2
-
+        #最終
         finally:
+            #閉じる
             if self.conn is not None:
                 self.conn.close()
             return 0

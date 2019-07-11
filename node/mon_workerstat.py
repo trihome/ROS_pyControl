@@ -153,6 +153,8 @@ class Mon_WorkerStat:
             msg.value = self.STAT_OFF
             # メッセージ送信
             pub.publish(msg)
+            #有効なボタンだけゼロリセット
+            self.Stat[i] = self.STAT_NONE
 
 
 if __name__ == '__main__':
