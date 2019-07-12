@@ -83,7 +83,8 @@ class DbMssql:
 
     def add_to_table(self, arg_IP, arg_data,
                    arg_type, arg_room, arg_region,
-                   arg_order, arg_priority, arg_dataa):
+                   arg_order, arg_priority, arg_dataa,
+                   arg_date='2019/1/1 0:0:0'):
         """
         1レコード書き込み
         """
@@ -133,7 +134,7 @@ class DbMssql:
                         %s  ,
                         %s  ,
                         '%s',
-                        GETDATE()
+                        '%s'
                     ) """ % (
                     arg_IP,
                     arg_data,
@@ -142,7 +143,8 @@ class DbMssql:
                     arg_region,
                     arg_order,
                     arg_priority,
-                    arg_dataa
+                    arg_dataa,
+                    sqldate
                 )
             )
             self.conn.commit()

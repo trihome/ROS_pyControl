@@ -124,4 +124,6 @@ dmypy.json
 .pyre/
 
 #
-db/
+*.db
+*.db.org
+

@@ -65,7 +65,7 @@ class MainProc:
         storage_ws = rospy.ServiceProxy('srv_storage_ws', s_workerstat_srv)
         storage_ct = rospy.ServiceProxy('srv_storage_ct', s_ct_srv)
         # 処理周期(Hz)を設定
-        rate = rospy.Rate(0.033)
+        rate = rospy.Rate(c.MAIN_INTERVAL)
         # シグナルタワーの色変更
         self.UpdateSigTower(2)
         # メインループ
@@ -92,7 +92,7 @@ class MainProc:
                 # ステップ３：CTの電流値
                 #
                 ad = grove_ad(0)
-                rospy.loginfo("< CT     > : %s(V)" % (ad.Val_VOLT))
+                rospy.loginfo("< CT     > : %s (x 0.01V)" % (ad.Val_VOLT))
                 #データベース書き込み
                 sct = storage_ct(0, ad.Val_VOLT)
                 #
@@ -136,11 +136,11 @@ class MainProc:
         スレッドのスタート
         """
         # スレッドをデーモンモードで開始
-        thread_obj = threading.Thread(target=self.thread)
+        thread_obj = threading.Thread(target=self.thread_do)
         thread_obj.setDaemon(True)
         thread_obj.start()
 
-    def thread(self):
+    def thread_do(self):
         """
         スレッド
         """
