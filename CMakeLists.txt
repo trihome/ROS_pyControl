@@ -59,6 +59,7 @@ add_service_files(
   s_ct_srv.srv
   s_sigtower_srv.srv
   s_workerstat_srv.srv
+  mystat_srv.srv
 )
 
 ## Generate actions in the 'action' folder

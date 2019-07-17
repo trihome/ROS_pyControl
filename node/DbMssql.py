@@ -15,7 +15,7 @@ import rospy
 import subprocess
 import sys
 #ローカル
-import ComFunctions
+import MyStat as s
 
 # ----------------------------------
 # 定数
@@ -50,8 +50,8 @@ class DbMssql:
         arg_verbose:bool
             表示を有効化
         """
-        # 共通処理クラスの宣言と引数の代入
-        self.__cf = ComFunctions.ComFunctions(arg_verbose)
+        # ステータスの初期化
+        self.__s = s.MyStat(None)
 
     def __del__(self):
         """
@@ -78,7 +78,7 @@ class DbMssql:
             # aliveなら0が帰ってくるので、そのときはtrueを返す
             return ping.returncode == 0
         except Exception as e:
-            rospy.logerror("%s" % e)
+            self.__s.message("%s" % e, s.ERROR)
             return False
 
     def add_to_table(self, arg_IP, arg_data,
@@ -90,7 +90,7 @@ class DbMssql:
         """
         # SQLServerの生死確認
         if self.is_connectable(_MSSQL_HOST) == False:
-            rospy.logwarn("%s is dead." % _MSSQL_HOST)
+            self.__s.message("%s is dead." % _MSSQL_HOST, s.WARN)
             # ホストから応答無いときは以降の処理をしない
             return -1
 
@@ -150,7 +150,7 @@ class DbMssql:
             self.conn.commit()
         #例外
         except Exception as e:
-            rospy.logerror("%s" % e)
+            self.__s.message("%s" % e, s.ERROR)
             return -2
         #最終
         finally:

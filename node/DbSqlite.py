@@ -20,7 +20,7 @@ import sqlite3
 import subprocess
 import sys
 # ローカル
-import ComFunctions
+import MyStat as s
 
 # ----------------------------------
 # 定数
@@ -63,8 +63,8 @@ class DbSqlite:
         arg_verbose:bool
             表示を有効化
         """
-        # 共通処理クラスの宣言と引数の代入
-        self.__cf = ComFunctions.ComFunctions(arg_verbose)
+        # ステータスの初期化
+        self.__s = s.MyStat(None)
 
     def __del__(self):
         """
@@ -84,7 +84,7 @@ class DbSqlite:
         if os.path.isfile(arg_host):
             return True
         else:
-            rospy.logerror("DB File [%s] is not exist." % arg_host)
+            self.__s.message("DB File [%s] is not exist." % arg_host, s.ERROR)
             return False
 
     def add_to_table(self, arg_row):
@@ -98,13 +98,56 @@ class DbSqlite:
         ----------
         https://qiita.com/mas9612/items/a881e9f14d20ee1c0703
         """
-        with closing(sqlite3.connect(_SQLITE_HOST)) as conn:
-            c = conn.cursor()
-            #SQL文生成
-            sql = 'insert into Uecs_LRaw (TriggerDate , DataType, DataVal) values (?,?,?)'
-            data = arg_row
-            #実行
-            c.execute(sql, data)
-            #コミット
-            conn.commit()
+        try:
+            with closing(sqlite3.connect(_SQLITE_HOST)) as conn:
+                c = conn.cursor()
+                # SQL文生成
+                sql = 'insert into Uecs_LRaw (TriggerDate , DataType, DataVal) values (?,?,?)'
+                data = arg_row
+                # 実行
+                c.execute(sql, data)
+                # コミット
+                conn.commit()
+        except:
+            # 例外メッセージ
+            self.__s.message(sys.exc_info()[0], s.WARN)
+        finally:
+            pass
 
+    def select_delete_from_table(self, arg_max_rows):
+        """
+        レコードを読み込んで、その分のレコードをテーブルから消す
+        Parameters
+        ----------
+        arg_max_rows:
+            最大行数
+        Returns
+        ----------
+        rows
+            レコードの配列
+        """
+        rows = None
+        try:
+            with closing(sqlite3.connect(_SQLITE_HOST)) as conn:
+                c = conn.cursor()
+
+                # レコードを読み込み
+                sql = "SELECT * FROM Uecs_LRaw ORDER BY id LIMIT %s" % arg_max_rows
+                # 実行
+                c.execute(sql)
+                rows = c.fetchall()
+
+                # 読み込んだレコードを削除
+                for row in rows:
+                    sql = "DELETE FROM Uecs_LRaw WHERE ID = %s" % row[0]
+                    # 実行
+                    c.execute(sql)
+                # コミット
+                conn.commit()
+        except:
+            # 例外メッセージ
+            self.__s.message(sys.exc_info()[0], s.WARN)
+        finally:
+            pass
+
+        return rows

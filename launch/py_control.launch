@@ -1,9 +1,27 @@
 <launch>
-    <node name="gpio_in" pkg="py_control" type="gpio_in.py" output="screen" respawn="true"/>
-    <node name="gpio_out" pkg="py_control" type="gpio_out.py" output="screen" respawn="true"/>
-    <node name="grove_ad" pkg="py_control" type="grove_ad.py" output="screen" respawn="true"/>
-    <node name="mon_workerstat" pkg="py_control" type="mon_workerstat.py" output="screen" respawn="true"/>
-    <node name="mon_sigtowerstat" pkg="py_control" type="mon_sigtowerstat.py" output="screen" respawn="true"/>
-    <!-- <node name="storage" pkg="py_control" type="storage.py" output="screen" respawn="true"/> -->
-    <!-- <node name="main" pkg="py_control" type="main.py" output="screen" respawn="true"/> -->
+    <!-- 起動制限 -->
+    <arg name="Limit_IO" default="false"/>
+    <arg name="Limit_Proc" default="false"/>
+    <arg name="Limit_Debug" default="true"/>
+
+    <!-- 入出力系 -->
+    <group unless="$(arg Limit_IO)">
+        <node name="gpio_in" pkg="py_control" type="Gpio_In.py" output="screen" respawn="true"/>
+        <node name="gpio_out" pkg="py_control" type="Gpio_Out.py" output="screen" respawn="true"/>
+        <node name="grove_ad" pkg="py_control" type="Grove_Ad.py" output="screen" respawn="true"/>
+    </group>
+
+    <!-- 処理解析系 -->
+    <group unless="$(arg Limit_Proc)">
+        <node name="mon_workerstat" pkg="py_control" type="Mon_Workerstat.py" output="screen" respawn="true"/>
+        <node name="mon_sigtowerstat" pkg="py_control" type="Mon_Sigtowerstat.py" output="screen" respawn="true"/>
+        <node name="storage" pkg="py_control" type="Storage.py" output="screen" respawn="true"/>
+        <node name="mystat" pkg="py_control" type="MyStat.py" output="screen" respawn="true"/>
+    </group>
+    
+    <!-- デバッグ調整中 -->
+    <group unless="$(arg Limit_Debug)">
+        <node name="main" pkg="py_control" type="Main.py" output="screen" respawn="true"/>
+    </group>
+
 </launch>

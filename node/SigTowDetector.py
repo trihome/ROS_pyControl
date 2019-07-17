@@ -14,7 +14,7 @@ import numpy as np
 import time
 import threading
 import conf as c
-import mon_sigtowerstat as sts
+import Mon_Sigtowerstat as sts
 
 class SigTowDetector:
     """

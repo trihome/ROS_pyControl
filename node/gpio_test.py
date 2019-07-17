@@ -61,7 +61,7 @@ def do():
         msg = gpio_mes()
         msg.port = port
         msg.value = 1
-        rospy.logdebug("[%s]Lamp Port: %s, Val: %s" %
+        rospy.loginfo("[%s]Lamp Port: %s, Val: %s" %
                        (count, msg.port, msg.value))
 
         # 送信
@@ -73,7 +73,7 @@ def do():
         msg = gpio_mes()
         msg.port = port
         msg.value = 0
-        rospy.logdebug("[%s]Lamp Port: %s, Val: %s" %
+        rospy.loginfo("[%s]Lamp Port: %s, Val: %s" %
                        (count, msg.port, msg.value))
 
         # 送信
@@ -96,7 +96,7 @@ def do():
             ad_4 = grove_ad(4)
             ad_5 = grove_ad(5)
             rospy.loginfo("Grove AD [%sch]:%s [%sch]:%s [%sch]:%s [%sch]:%s" %
-                        (0, ad_0, 2, ad_2, 3, ad_3, 4, ad_4))
+                        (0, ad_0.Val_VOLT, 2, ad_2.Val_VOLT, 3, ad_3.Val_VOLT, 4, ad_4.Val_VOLT))
         except:
             pass
         finally:
