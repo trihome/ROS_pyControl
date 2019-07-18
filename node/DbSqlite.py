@@ -149,5 +149,32 @@ class DbSqlite:
             self.__s.message(sys.exc_info()[0], s.WARN)
         finally:
             pass
-
+        #結果を返す
         return rows
+
+    def count_from_table(self):
+        """
+        残りのレコード数を取得
+        Parameters
+        ----------
+        Returns
+        ----------
+        rows
+            レコード数
+        """
+        try:
+            with closing(sqlite3.connect(_SQLITE_HOST)) as conn:
+                c = conn.cursor()
+                # レコード件数
+                sql = "SELECT COUNT(*) FROM Uecs_LRaw;"
+                # 実行
+                for row in c.execute(sql):
+                    #結果を返す
+                    return int(row[0])
+        except:
+            # 例外メッセージ
+            self.__s.message(sys.exc_info()[0], s.WARN)
+        finally:
+            pass
+
+        return -1

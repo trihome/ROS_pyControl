@@ -1,2 +1,2 @@
-int8 port
-int8 value
+int16 port
+int16 value

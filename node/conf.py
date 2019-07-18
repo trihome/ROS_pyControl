@@ -48,8 +48,8 @@ GPIO_SIGTOWERORDER = ["RED", "YELLOW", "GREEN", "BLUE"]
 # --------------------------------------
 
 # 主処理の測定間隔(Hz)
-#MAIN_INTERVAL = 0.033333
-MAIN_INTERVAL = 0.05
+MAIN_INTERVAL = 0.033333
+#MAIN_INTERVAL = 0.05
 
 # --------------------------------------
 # その他設定：シグナルタワー
@@ -71,9 +71,12 @@ SIGTOWER_DETECT_INTERVAL = 0.05
 # --------------------------------------
 
 # データベースサーバへの書き込み間隔（Hz）
-#DB_MSSQL_APPEND_INTERVAL = 0.016666
-DB_MSSQL_APPEND_INTERVAL = 0.033333
+DB_MSSQL_APPEND_INTERVAL = 0.016666
+#DB_MSSQL_APPEND_INTERVAL = 0.033333
 
+# SQLiteからSQLServerへ
+# 一度にテーブルに追加する上限件数
+DB_SQLITE_MSSQL_SEND_MAX = 10
 
 # --------------------------------------
 # その他設定：動作監視Mystat
@@ -81,3 +84,7 @@ DB_MSSQL_APPEND_INTERVAL = 0.033333
 
 # 測定間隔（Hz）
 MYSTAT_DETECT_INTERVAL = 0.1
+
+# 正常以外の状態が発生したときに
+# シグナルタワー赤・黄色の点灯を持続する時間(s)
+MYSTAT_KEEP_LAMPON_TIME = 120

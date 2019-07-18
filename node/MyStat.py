@@ -14,6 +14,7 @@ import re
 import rospy
 import rosservice
 import sys
+import time
 # ローカル
 import conf as c
 import conf_local as cl
@@ -52,24 +53,29 @@ class MyStat:
     # ----------------------------------
     # ローカル変数
     # ----------------------------------
-    status = NONE
+    __status_now = NONE
+    __status_last_debug = None
+    __status_last_info = None
+    __status_last_warn = None
+    __status_last_error = None
+    __status_last_fatal = None
     __verbose = False
     # ----------------------------------
     # 公開変数
     # ----------------------------------
     @property
-    def status(self):
+    def __status_now(self):
         """
-        ノードのステータス
+        ノードの現在ステータス
         """
-        return self.status
+        return self.__status_now
 
-    @status.setter
-    def status(self, value):
+    @__status_now.setter
+    def __status_now(self, value):
         """
-        ノードのステータス
+        ノードの現在ステータス
         """
-        self.status = value
+        self.__status_now = value
 
     # ----------------------------------
     # メソッド
@@ -86,7 +92,7 @@ class MyStat:
             ログメッセージ表示の強制を有効化
         """
         # ステータスの初期化
-        self.status = NORMAL
+        self.__status_now = NORMAL
         # ログメッセージ表示を強制する
         self.__verbose = arg_verbose
         # ステータスサービスの登録
@@ -111,7 +117,10 @@ class MyStat:
         : mystat_srv
             メッセージ
         """
-        return mystat_srvResponse(self.status)
+        # 回答する
+        return mystat_srvResponse(
+            self.__status_now, self.__status_last_debug, self.__status_last_info,
+            self.__status_last_warn, self.__status_last_error, self.__status_last_fatal)
 
     def message(self, arg_message, arg_level=DEBUG):
         """
@@ -124,11 +133,13 @@ class MyStat:
             警告レベル
         """
         # ステータス変更
-        self.status = arg_level
+        self.__status_now = arg_level
         # ログメッセージの加工
         message = ("%s" % (arg_message))
         # ログメッセージの表示
         if arg_level == DEBUG:
+            # 現在時刻取得
+            self.__status_last_debug = rospy.Time.now()
             if self.__verbose:
                 # 画面出力
                 rospy.loginfo(message)
@@ -136,15 +147,23 @@ class MyStat:
                 # 画面出力しない
                 rospy.logdebug(message)
         elif arg_level == INFO:
+            # 現在時刻取得
+            self.__status_last_info = rospy.Time.now()
             # 画面出力
             rospy.loginfo(message)
         elif arg_level == WARN:
+            # 現在時刻取得
+            self.__status_last_warn = rospy.Time.now()
             # 警告表示
             rospy.logwarn(message)
         elif arg_level == ERROR:
+            # 現在時刻取得
+            self.__status_last_error = rospy.Time.now()
             # エラー表示
             rospy.logerr(message)
         elif arg_level == FATAL:
+            # 現在時刻取得
+            self.__status_last_fatal = rospy.Time.now()
             # 致命的エラー
             rospy.logfatal(message)
         else:
@@ -183,7 +202,8 @@ class MystatMaster(MyStat):
             メッセージ表示を有効化
         """
         # ステータスの初期化
-        self.__s = MyStat(None, arg_verbose)
+        self.__verbose = arg_verbose
+        self.s = MyStat(None, arg_verbose)
 
     def __del__(self):
         """
@@ -251,7 +271,7 @@ if __name__ == '__main__':
     # ノードの初期化と名称設定
     rospy.init_node(MystatMaster.SELFNODE)
     # インスタンスを生成
-    msm = MystatMaster(False)
+    msm = MystatMaster(True)
     rospy.loginfo("[%s] Do..." % (os.path.basename(__file__)))
     # 処理周期Hz
     r = rospy.Rate(c.MYSTAT_DETECT_INTERVAL)
@@ -265,10 +285,17 @@ if __name__ == '__main__':
         # 起動時点のサービス一覧を取得
         service_list_boot = rosservice.get_service_list()
 
+        # 警告以上のランプ点灯の保持用タイマー
+        time_last_warn = None
+        time_last_error = None
+
         # 繰り返し
         while not rospy.is_shutdown():
             # シグナルタワーを青にしてから処理開始
             update_signaltower(7)
+            #
+            # STEP1：各ノードの状態を取得
+            #
             # サービス一覧を取得
             service_list = rosservice.get_service_list()
             # 監視対象のサービスだけ抽出
@@ -276,25 +303,63 @@ if __name__ == '__main__':
                 s for s in service_list if re.match('^/srv.*_stat$', s)]
             # 監視対象のサービスのステータス
             stat_list = []
+            # 監視対象のサービスの警告以上の発生した最終時刻
+            stat_list_warn = []
+            stat_list_error = []
+            stat_list_fatal = []
             # 各サービスに問い合わせる
             for service in service_list_match:
                 # ローカルプロキシにサービス名と型を設定
                 statsv = rospy.ServiceProxy(service, mystat_srv)
                 # 問い合わせ
                 statval = statsv()
-                # ステータス値をリストに追加
-                stat_list.append(statval.Status)
+                # ステータス値、最終警告発生時刻をリストに追加
+                stat_list.append(statval.status_now)
+                stat_list_warn.append(statval.status_last_warn)
+                stat_list_error.append(statval.status_last_error)
+                stat_list_fatal.append(statval.status_last_fatal)
                 # 状態表示
-                msm.message(("%s > %s" % (service, statval)))
-            # リストの値の最大値を取得
+                msm.s.message(("< MyStat > %s > %s" %
+                               (service, statval.status_now)))
+            # リスト、最終警告発生時刻の値の最大値を取得
             stat_max = max(stat_list)
-            # 警告レベルが指定以上の時
-            if stat_max == WARN:
-                # シグナルタワーを黄点灯
-                update_signaltower(5)
-            elif stat_max >= ERROR:
+            stat_last_warn = max(stat_list_warn)
+            stat_last_error = max(stat_list_error)
+            stat_last_fatal = max(stat_list_fatal)
+            #
+            # STEP2：警告状態を一定時間保持する小細工
+            #
+            # 現在時刻
+            time_now = rospy.Time.now()
+            #
+            flug_warn = False
+            flug_error = False
+            # 警告の最終時刻が、"現在時刻 - MYSTAT_KEEP_LAMPON_TIME"以内の時
+            print(time_now)
+            print(stat_last_warn)
+            print(rospy.Duration(c.MYSTAT_KEEP_LAMPON_TIME))
+            if time_now - stat_last_warn < rospy.Duration(c.MYSTAT_KEEP_LAMPON_TIME):
+                msm.s.message("< MyStat > A WARN has occurred ( %s sec ago)" % str((time_now - stat_last_warn) / pow(10,9)))
+                flug_warn = True
+            # エラーの最終時刻が・・・（同様
+            if time_now - stat_last_error < rospy.Duration(c.MYSTAT_KEEP_LAMPON_TIME):
+                msm.s.message("< MyStat > A ERROR has occurred ( %s sec ago)" % str((time_now - stat_last_error) / pow(10,9)))
+                flug_error = True
+            # エラーの最終時刻が・・・（同様
+            if time_now - stat_last_fatal < rospy.Duration(c.MYSTAT_KEEP_LAMPON_TIME):
+                flug_error = True
+                msm.s.message("< MyStat > A FATAL has occurred ( %s sec ago)" % str((time_now - stat_last_fatal) / pow(10,9)))
+            #
+            # STEP3：ランプの点灯制御
+            #
+            # 警告レベルがエラー以上の時・かつ赤色点灯の保持時間内の場合
+            if stat_max >= ERROR or flug_error:
                 # シグナルタワーを赤点灯
                 update_signaltower(4)
+            # 警告レベルが警告以上の時・かつ黄色点灯の保持時間内の場合
+            elif stat_max == WARN or flug_warn:
+                # シグナルタワーを黄点灯
+                update_signaltower(5)
             else:
                 # それ以外ならシグナルタワーを緑点灯
                 update_signaltower(6)

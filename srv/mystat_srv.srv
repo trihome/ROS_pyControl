@@ -1,2 +1,7 @@
 ---
-int16 Status
+int16 status_now
+time status_last_debug
+time status_last_info
+time status_last_warn
+time status_last_error
+time status_last_fatal

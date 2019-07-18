@@ -35,7 +35,7 @@ class MainProc:
     # トピック名
     SELFTOPIC = "srv_" + SELFNODE
 
-    def __init__(self, arg_verbose):
+    def __init__(self, arg_verbose=False):
         """
         コンストラクタ
         """
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     """
 
     # インスタンスを生成
-    mp = MainProc(True)
+    mp = MainProc()
     # 処理周期Hz
     r = rospy.Rate(c.MAIN_INTERVAL)
     try:

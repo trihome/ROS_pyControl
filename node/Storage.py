@@ -39,9 +39,12 @@ class Storage:
     SELFTOPIC = "srv_" + SELFNODE
 
     # キュー
-    qworkerstat = Queue.Queue()
-    qsigtower = Queue.Queue()
-    qct = Queue.Queue()
+    __qworkerstat = Queue.Queue()
+    __qsigtower = Queue.Queue()
+    __qct = Queue.Queue()
+
+    #SQLiteに残っている件数
+    __sqlite_remain = 0
 
     def __init__(self, arg_verbose=False):
         """
@@ -82,30 +85,31 @@ class Storage:
             state = ("%s%s%s%s%s" %
                      (request.White, request.Blue, request.Green, request.Yellow, request.Red))
             # キューに追加
-            self.qsigtower.put([state, 5, dtnow])
+            self.__qsigtower.put([state, 5, dtnow])
             # self.A_SigTower(state, 5)
         elif request.Blue >= 0:
             state = ("%s%s%s%s" %
                      (request.Blue, request.Green, request.Yellow, request.Red))
-            self.qsigtower.put([state, 4, dtnow])
+            self.__qsigtower.put([state, 4, dtnow])
             # self.A_SigTower(state, 4)
         elif request.Green >= 0:
             state = ("%s%s%s" % (request.Green, request.Yellow, request.Red))
-            self.qsigtower.put([state, 3, dtnow])
+            self.__qsigtower.put([state, 3, dtnow])
             # self.A_SigTower(state, 3)
         elif request.Yellow >= 0:
             state = ("%s%s" % (request.Yellow, request.Red))
-            self.qsigtower.put([state, 2, dtnow])
+            self.__qsigtower.put([state, 2, dtnow])
             # self.A_SigTower(state, 2)
         elif request.Red >= 0:
             state = ("%s" % (request.Red))
-            self.qsigtower.put([state, 1, dtnow])
+            self.__qsigtower.put([state, 1, dtnow])
             # self.A_SigTower(state, 1)
         else:
             state = "-"
         # ログ
         self.__s.message(" * queue : SigTower [%s] > %s" % (0, state))
-        return s_sigtower_srvResponse(0)
+        #SQLiteに残っている件数を返す
+        return s_sigtower_srvResponse(self.__sqlite_remain)
 
     def handle_ct(self, request):
         """
@@ -118,12 +122,13 @@ class Storage:
         # 現在時刻を取得
         dtnow = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         # キューに追加
-        self.qct.put([str(request.Volt), dtnow])
+        self.__qct.put([str(request.Volt), dtnow])
         # 文字の組み立てとレコードの追加
         # self.A_Ct(str(request.Volt))
         # ログ
         self.__s.message(" * queue : Ct [%s] > %s" % (0, str(request.Volt)))
-        return s_ct_srvResponse(0)
+        #SQLiteに残っている件数を返す
+        return s_ct_srvResponse(self.__sqlite_remain)
 
     def handle_ws(self, request):
         """
@@ -142,35 +147,12 @@ class Storage:
                   1 if request.Green > 0 else 0,
                   1 if request.Blue > 0 else 0))
         # キューに追加
-        self.qworkerstat.put([state, dtnow])
+        self.__qworkerstat.put([state, dtnow])
         # self.A_Ws(state)
         # ログ
         self.__s.message(" * queue : Ws [%s] > %s" % (0, state))
-        return s_workerstat_srvResponse(0)
-
-    # def thread_init(self):
-    #     """
-    #     スレッドのスタート
-    #     """
-    #     # スレッドをデーモンモードで開始
-    #     thread_obj = threading.Thread(target=self.thread_do)
-    #     thread_obj.setDaemon(True)
-    #     thread_obj.start()
-
-    # def thread_do(self):
-    #     """
-    #     スレッド
-    #     """
-    #     # インスタンス生成
-    #     self.__dbm = DbMssql.DbMssql()
-    #     self.__dbs = DbSqlite.DbSqlite()
-    #     # データベースへの書き込み処理
-    #     while True:
-    #         self.do()
-    #         #
-    #         # 次の処理までウェイト
-    #         #
-    #         time.sleep(c.DB_MSSQL_APPEND_INTERVAL)
+        #SQLiteに残っている件数を返す
+        return s_workerstat_srvResponse(self.__sqlite_remain)
 
     def do(self):
         """
@@ -197,8 +179,8 @@ class Storage:
         ccm = ["SigTower1.mLI", "SigTower2.mLI",
                "SigTower3.mLI", "SigTower4.mLI", "SigTower5.mLI"]
         # キューを順次呼び出し
-        while not self.qsigtower.empty():
-            buf = self.qsigtower.get()
+        while not self.__qsigtower.empty():
+            buf = self.__qsigtower.get()
             # SQLServerに登録
             self.add_record(ccm[buf[1]], buf[0], buf[2], sqltype)
 
@@ -206,30 +188,35 @@ class Storage:
         # STEP2:作業者状態
         #
         # キューを順次呼び出し
-        while not self.qworkerstat.empty():
-            buf = self.qworkerstat.get()
+        while not self.__qworkerstat.empty():
+            buf = self.__qworkerstat.get()
             # SQLServerに登録
             self.add_record("WorkerStat4.mLI", buf[0], buf[1], sqltype)
         #
         # STEP3:CT
         #
         # キューを順次呼び出し
-        while not self.qct.empty():
-            buf = self.qct.get()
+        while not self.__qct.empty():
+            buf = self.__qct.get()
             # SQLServerに登録
             self.add_record("CT.mLI", buf[0], buf[1], sqltype)
         #
         # STEP4:書き込みできなかったデータを再書き込み
         #
         if sqltype == 0:
-            # 一度にテーブルに追加する上限
-            sqlite_queue_max = 5
             # SQLiteからデータを取り出してそのレコードを消す
-            rows = self.__dbs.select_delete_from_table(sqlite_queue_max)
-            #読み出したレコードをSQLServerに追加
+            rows = self.__dbs.select_delete_from_table(c.DB_SQLITE_MSSQL_SEND_MAX)
+            # 読み出したレコードをSQLServerに追加
             for row in rows:
                 # SQLServerに追加
                 self.add_record(row[2], row[3], row[1], sqltype)
+        #
+        #STEP5:SQLiteの残件数更新
+        #
+        #残件問い合わせ
+        self.__sqlite_remain = self.__dbs.count_from_table()
+        #ログに表示
+        self.__s.message(" * sqlite remain : %s" % (self.__sqlite_remain))
 
     def add_record(self, arg_CCM, arg_val, arg_date, arg_sqltype=0):
         """

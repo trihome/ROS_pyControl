@@ -22,6 +22,7 @@ import SigTowDetector as sd
 # メッセージのヘッダファイル
 from py_control.srv import mon_sigtowerstat_srv, mon_sigtowerstat_srvResponse
 from py_control.srv import grove_ad_srv, grove_ad_srvResponse
+from py_control.msg import mon_workerstat_mes
 
 
 class Mon_SigTowerStat:
@@ -149,7 +150,7 @@ class Mon_SigTowerStat:
         ans = std.Do()
         # print(ans)
         # ステータスの更新と測定結果の表示
-        message = ""
+        message = "<SigTStat> "
         count = 0
         for i in ans:
             if (count < len(self.__signaltow_stat)):
@@ -160,6 +161,22 @@ class Mon_SigTowerStat:
             count += 1
         # メッセージ表示
         self.__s.message(message)
+        #
+        # ステップ3：黄色ランプ点灯時だけ、WorkerStatを有効化
+        #
+        # 指定のトピックへメッセージを送信：
+        pub = rospy.Publisher('mes_mon_workerstat',
+                              mon_workerstat_mes, queue_size=10)
+        msg = mon_workerstat_mes()
+        # 黄色ランプが点灯・点滅してるとき
+        if (self.__signaltow_stat[1] == self.STAT_BLINK) or (self.__signaltow_stat[1] == self.STAT_ON):
+            # メッセージ送信
+            msg.enable = True
+            pub.publish(msg)
+        else:
+            # メッセージ送信
+            msg.enable = False
+            pub.publish(msg)
 
 
 if __name__ == '__main__':
