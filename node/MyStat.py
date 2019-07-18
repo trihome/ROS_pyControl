@@ -335,9 +335,6 @@ if __name__ == '__main__':
             flug_warn = False
             flug_error = False
             # 警告の最終時刻が、"現在時刻 - MYSTAT_KEEP_LAMPON_TIME"以内の時
-            print(time_now)
-            print(stat_last_warn)
-            print(rospy.Duration(c.MYSTAT_KEEP_LAMPON_TIME))
             if time_now - stat_last_warn < rospy.Duration(c.MYSTAT_KEEP_LAMPON_TIME):
                 msm.s.message("< MyStat > A WARN has occurred ( %s sec ago)" % str((time_now - stat_last_warn) / pow(10,9)))
                 flug_warn = True
