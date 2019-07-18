@@ -98,7 +98,7 @@ class MainProc:
             ad = grove_ad(0)
             self.__s.message("< CT     > : %s (x 0.01V)" % (ad.Val_VOLT))
             # データベース書き込み
-            sct = storage_ct(0, ad.Val_VOLT)
+            sct = storage_ct(1, ad.Val_VOLT)
             #
             # ステップ４：ストレージに書き込み
             #

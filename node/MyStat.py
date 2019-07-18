@@ -271,7 +271,7 @@ if __name__ == '__main__':
     # ノードの初期化と名称設定
     rospy.init_node(MystatMaster.SELFNODE)
     # インスタンスを生成
-    msm = MystatMaster(True)
+    msm = MystatMaster()
     rospy.loginfo("[%s] Do..." % (os.path.basename(__file__)))
     # 処理周期Hz
     r = rospy.Rate(c.MYSTAT_DETECT_INTERVAL)

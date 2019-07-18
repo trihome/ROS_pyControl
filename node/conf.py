@@ -76,7 +76,7 @@ DB_MSSQL_APPEND_INTERVAL = 0.016666
 
 # SQLiteからSQLServerへ
 # 一度にテーブルに追加する上限件数
-DB_SQLITE_MSSQL_SEND_MAX = 10
+DB_SQLITE_MSSQL_SEND_MAX = 30
 
 # --------------------------------------
 # その他設定：動作監視Mystat
