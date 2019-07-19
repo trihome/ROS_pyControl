@@ -162,20 +162,20 @@ class Mon_SigTowerStat:
         # メッセージ表示
         self.__s.message(message)
         #
-        # ステップ3：黄色ランプ点灯時だけ、WorkerStatを有効化
+        # ステップ3：緑ランプ点灯時だけ、WorkerStatを無効化
         #
         # 指定のトピックへメッセージを送信：
         pub = rospy.Publisher('mes_mon_workerstat',
                               mon_workerstat_mes, queue_size=10)
         msg = mon_workerstat_mes()
-        # 黄色ランプが点灯・点滅してるとき
-        if (self.__signaltow_stat[1] == self.STAT_BLINK) or (self.__signaltow_stat[1] == self.STAT_ON):
-            # メッセージ送信
-            msg.enable = True
+        # 緑ランプが点灯・点滅してるとき
+        if (self.__signaltow_stat[2] == self.STAT_BLINK) or (self.__signaltow_stat[2] == self.STAT_ON):
+            # 無効化のメッセージ送信
+            msg.enable = False
             pub.publish(msg)
         else:
-            # メッセージ送信
-            msg.enable = False
+            # 有効化のメッセージ送信
+            msg.enable = True
             pub.publish(msg)
 
 

@@ -22,7 +22,7 @@ import MyStat as s
 # ----------------------------------
 
 # SQLServer接続情報
-_MSSQL_HOST = 'fdb-sv2.minoru-sangyo.co.jp'
+_MSSQL_HOST = '192.168.0.26'
 _MSSQL_DATABASE = 'fman'
 _MSSQL_USER = 'fmanadmin'
 _MSSQL_PW = 'fmanadminpassword'

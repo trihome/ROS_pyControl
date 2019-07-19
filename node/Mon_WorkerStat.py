@@ -184,7 +184,7 @@ class Mon_WorkerStat:
 
     def StatusReset(self):
         """
-        ステータスを全てリセット（上手く動いてない）
+        ステータスを全てリセット
         """
         # 値をリセット
         for i in range(len(self.__worker_stat)):

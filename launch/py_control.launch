@@ -9,7 +9,7 @@
     <group unless="$(arg Limit_HardIO)">
         <node name="gpio_in" pkg="py_control" type="Gpio_In.py" output="screen" respawn="true"/>
         <node name="gpio_out" pkg="py_control" type="Gpio_Out.py" output="screen" respawn="true"/>
-        <node name="grove_ad" pkg="py_control" type="Grove_Ad.py" output="screen" respawn="true"/>
+        <node name="grove_ad" pkg="py_control" type="Grove_AD.py" output="screen" respawn="true"/>
     </group>
 
     <!-- 入出力系 -->
@@ -19,8 +19,8 @@
 
     <!-- 処理解析系 -->
     <group unless="$(arg Limit_Proc)">
-        <node name="mon_workerstat" pkg="py_control" type="Mon_Workerstat.py" output="screen" respawn="true"/>
-        <node name="mon_sigtowerstat" pkg="py_control" type="Mon_Sigtowerstat.py" output="screen" respawn="true"/>
+        <node name="mon_workerstat" pkg="py_control" type="Mon_WorkerStat.py" output="screen" respawn="true"/>
+        <node name="mon_sigtowerstat" pkg="py_control" type="Mon_SigTowerStat.py" output="screen" respawn="true"/>
         <node name="main" pkg="py_control" type="Main.py" output="screen" respawn="true"/>
     </group>
     
