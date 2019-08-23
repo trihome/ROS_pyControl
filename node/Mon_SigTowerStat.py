@@ -161,22 +161,22 @@ class Mon_SigTowerStat:
             count += 1
         # メッセージ表示
         self.__s.message(message)
-        #
-        # ステップ3：緑ランプ点灯時だけ、WorkerStatを無効化
-        #
-        # 指定のトピックへメッセージを送信：
-        pub = rospy.Publisher('mes_mon_workerstat',
-                              mon_workerstat_mes, queue_size=10)
-        msg = mon_workerstat_mes()
-        # 緑ランプが点灯・点滅してるとき
-        if (self.__signaltow_stat[2] == self.STAT_BLINK) or (self.__signaltow_stat[2] == self.STAT_ON):
-            # 無効化のメッセージ送信
-            msg.enable = False
-            pub.publish(msg)
-        else:
-            # 有効化のメッセージ送信
-            msg.enable = True
-            pub.publish(msg)
+        # #
+        # # ステップ3：緑ランプ点灯時だけ、WorkerStatを無効化 （7/24機能を無効化）
+        # #
+        # # 指定のトピックへメッセージを送信：
+        # pub = rospy.Publisher('mes_mon_workerstat',
+        #                       mon_workerstat_mes, queue_size=10)
+        # msg = mon_workerstat_mes()
+        # # 緑ランプが点灯・点滅してるとき
+        # if (self.__signaltow_stat[2] == self.STAT_BLINK) or (self.__signaltow_stat[2] == self.STAT_ON):
+        #     # 無効化のメッセージ送信
+        #     msg.enable = False
+        #     pub.publish(msg)
+        # else:
+        #     # 有効化のメッセージ送信
+        #     msg.enable = True
+        #     pub.publish(msg)
 
 
 if __name__ == '__main__':
