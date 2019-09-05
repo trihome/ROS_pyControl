@@ -13,7 +13,7 @@
 #変数の設定
 SCRIPTDIR=/home/pi/catkin_ws/src/py_control
 LOGDIR=$SCRIPTDIR/log
-ROS_HOSTNAME=raspibp
+ROS_HOSTNAME=raspiap
 ROS_MASTER_URI=http://${ROS_HOSTNAME}:11311
 
 #実行

@@ -43,7 +43,7 @@ class Storage:
     __qsigtower = Queue.Queue()
     __qct = Queue.Queue()
 
-    #SQLiteに残っている件数
+    # SQLiteに残っている件数
     __sqlite_remain = 0
 
     def __init__(self, arg_verbose=False):
@@ -82,6 +82,9 @@ class Storage:
         dtnow = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         # 文字の組み立てとレコードの追加
         if request.White >= 0:
+            # request.Whiteが0以上
+            # （即ち、測定している状態。していなければ-1が格納されてる）
+            # （以降、該当の点灯色が0以上なら、その灯番号を最大とする桁数に調整）
             state = ("%s%s%s%s%s" %
                      (request.White, request.Blue, request.Green, request.Yellow, request.Red))
             # キューに追加
@@ -108,7 +111,7 @@ class Storage:
             state = "-"
         # ログ
         self.__s.message(" * queue : SigTower [%s] > %s" % (0, state))
-        #SQLiteに残っている件数を返す
+        # SQLiteに残っている件数を返す
         return s_sigtower_srvResponse(self.__sqlite_remain)
 
     def handle_ct(self, request):
@@ -127,7 +130,7 @@ class Storage:
         # self.A_Ct(str(request.Volt))
         # ログ
         self.__s.message(" * queue : Ct [%s] > %s" % (0, str(request.Volt)))
-        #SQLiteに残っている件数を返す
+        # SQLiteに残っている件数を返す
         return s_ct_srvResponse(self.__sqlite_remain)
 
     def handle_ws(self, request):
@@ -142,16 +145,16 @@ class Storage:
         dtnow = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         # 文字の組み立てとレコードの追加
         state = ("%s%s%s%s" %
-                 (1 if request.Red > 0 else 0,
-                  1 if request.Yellow > 0 else 0,
+                 (1 if request.Blue > 0 else 0,
                   1 if request.Green > 0 else 0,
-                  1 if request.Blue > 0 else 0))
+                  1 if request.Yellow > 0 else 0,
+                  1 if request.Red > 0 else 0))
         # キューに追加
         self.__qworkerstat.put([state, dtnow])
         # self.A_Ws(state)
         # ログ
         self.__s.message(" * queue : Ws [%s] > %s" % (0, state))
-        #SQLiteに残っている件数を返す
+        # SQLiteに残っている件数を返す
         return s_workerstat_srvResponse(self.__sqlite_remain)
 
     def do(self):
@@ -205,17 +208,18 @@ class Storage:
         #
         if sqltype == 0:
             # SQLiteからデータを取り出してそのレコードを消す
-            rows = self.__dbs.select_delete_from_table(c.DB_SQLITE_MSSQL_SEND_MAX)
+            rows = self.__dbs.select_delete_from_table(
+                c.DB_SQLITE_MSSQL_SEND_MAX)
             # 読み出したレコードをSQLServerに追加
             for row in rows:
                 # SQLServerに追加
                 self.add_record(row[2], row[3], row[1], sqltype)
         #
-        #STEP5:SQLiteの残件数更新
+        # STEP5:SQLiteの残件数更新
         #
-        #残件問い合わせ
+        # 残件問い合わせ
         self.__sqlite_remain = self.__dbs.count_from_table()
-        #ログに表示
+        # ログに表示
         self.__s.message(" * sqlite remain : %s" % (self.__sqlite_remain))
 
     def add_record(self, arg_CCM, arg_val, arg_date, arg_sqltype=0):
