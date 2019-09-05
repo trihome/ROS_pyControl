@@ -28,15 +28,21 @@ GPIO_OUT_WORKERSTAT = range(0, 4)
 GPIO_IN_WORKERSTAT = range(0, 4)
 GPIO_WORKERSTATORDER = ["RED", "YELLOW", "GREEN", "BLUE"]
 
-# AD割り当て範囲:監視対象設備の電流センサ
-GROVE_AD_CT = range(0, 2)
-GROVE_AD_CTORDER = ["CT1", "CT2"]
 # AD測定間隔(Hz)
 GROVE_AD_DETECT_INTERVAL = 2.5
 
+# AD割り当て範囲:監視対象設備の電流センサ
+# AD ch 0, 1
+GROVE_AD_CT = range(0, 2)
+GROVE_AD_CTORDER = ["CT1", "CT2"]
+
 # AD割り当て範囲：監視対象設備のシグナルタワー
-GROVE_AD_SIGTOWER = range(2, 6)
+# AD ch 2→R, 3→Y, 4→G, 5→B （４灯まで）
+GROVE_AD_SIGTOWER = range(2, 5)
 GROVE_AD_SIGTOWERORDER = ["RED", "YELLOW", "GREEN", "BLUE"]
+# AD ch 2→R, 3→Y, 4→G, 5→B, 6→W　(5灯まで)
+# GROVE_AD_SIGTOWER = range(2, 5)
+# GROVE_AD_SIGTOWERORDER = ["RED", "YELLOW", "GREEN", "BLUE", "WHITE"]
 
 # GPIO OUT割り当て範囲：本装置のシグナルタワー
 GPIO_OUT_SIGTOWER = range(4, 8)

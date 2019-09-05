@@ -48,7 +48,7 @@ class Mon_SigTowerStat:
     STAT_ON = 2
 
     # 設備シグナルタワーの状態
-    # 0:RED  1:YELLOW  2:GREEN  3:BLUE  4:WHITE
+    # （5灯タイプ）0:RED  1:YELLOW  2:GREEN  3:BLUE  4:WHITE
     __signaltow_stat = [STAT_NONE, STAT_NONE, STAT_NONE, STAT_NONE, STAT_NONE]
 
     def __init__(self, arg_verbose=False):
