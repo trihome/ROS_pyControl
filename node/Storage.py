@@ -199,7 +199,7 @@ class Storage:
         while not self.__qct.empty():
             buf = self.__qct.get()
             # SQLServerに登録
-            self.add_record("CT.mLI", buf[0], buf[1], sqltype)
+            self.add_record("CTRaw.mLI", buf[0], buf[1], sqltype)
         #
         # STEP4:書き込みできなかったデータを再書き込み
         #
