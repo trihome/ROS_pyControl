@@ -16,16 +16,17 @@ import subprocess
 import sys
 #ローカル
 import MyStat as s
+import conf_local as cl
 
 # ----------------------------------
 # 定数
 # ----------------------------------
 
 # SQLServer接続情報
-_MSSQL_HOST = '192.168.0.26'
-_MSSQL_DATABASE = 'fman'
-_MSSQL_USER = 'fmanadmin'
-_MSSQL_PW = 'fmanadminpassword'
+#_MSSQL_HOST = ''
+#_MSSQL_DATABASE = ''
+#_MSSQL_USER = ''
+#_MSSQL_PW = ''
 
 # ----------------------------------
 # クラス
@@ -59,7 +60,7 @@ class DbMssql:
         """
         pass
 
-    def is_connectable(self, arg_host=_MSSQL_HOST):
+    def is_connectable(self, arg_host=cl._MSSQL_HOST):
         """
         ホストの死活チェック
         Parameters
@@ -89,8 +90,8 @@ class DbMssql:
         1レコード書き込み
         """
         # SQLServerの生死確認
-        if self.is_connectable(_MSSQL_HOST) == False:
-            self.__s.message("%s is dead." % _MSSQL_HOST, s.WARN)
+        if self.is_connectable(cl._MSSQL_HOST) == False:
+            self.__s.message("%s is dead." % cl._MSSQL_HOST, s.WARN)
             # ホストから応答無いときは以降の処理をしない
             return -1
 
@@ -98,10 +99,10 @@ class DbMssql:
             # SQLServerに接続
             # python2は引数の変数指定が無いと以下のエラー
             # (Connection to the database failed for an unknown reason.)
-            self.conn = pymssql.connect(host=_MSSQL_HOST,
-                                        user=_MSSQL_USER,
-                                        password=_MSSQL_PW,
-                                        database=_MSSQL_DATABASE)
+            self.conn = pymssql.connect(host=cl._MSSQL_HOST,
+                                        user=cl._MSSQL_USER,
+                                        password=cl._MSSQL_PW,
+                                        database=cl._MSSQL_DATABASE)
             # 現在時刻
             #dtnow = datetime.datetime.now()
             #日付の書き込みモードの判定

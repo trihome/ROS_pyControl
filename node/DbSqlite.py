@@ -21,13 +21,14 @@ import subprocess
 import sys
 # ローカル
 import MyStat as s
+import conf_local as cl
 
 # ----------------------------------
 # 定数
 # ----------------------------------
 
 # SQLite接続情報
-_SQLITE_HOST = "/home/pi/catkin_ws/src/py_control/db/datasaving.db"
+#_SQLITE_HOST = ""
 
 # テーブル生成
 # https://www.dbonline.jp/sqlite/table/index9.html
@@ -72,7 +73,7 @@ class DbSqlite:
         """
         pass
 
-    def is_connectable(self, arg_host=_SQLITE_HOST):
+    def is_connectable(self, arg_host=cl._SQLITE_HOST):
         """
         ホストの死活チェック
         Parameters
@@ -99,7 +100,7 @@ class DbSqlite:
         https://qiita.com/mas9612/items/a881e9f14d20ee1c0703
         """
         try:
-            with closing(sqlite3.connect(_SQLITE_HOST)) as conn:
+            with closing(sqlite3.connect(cl._SQLITE_HOST)) as conn:
                 c = conn.cursor()
                 # SQL文生成
                 sql = 'insert into Uecs_LRaw (TriggerDate , DataType, DataVal) values (?,?,?)'
@@ -128,7 +129,7 @@ class DbSqlite:
         """
         rows = None
         try:
-            with closing(sqlite3.connect(_SQLITE_HOST)) as conn:
+            with closing(sqlite3.connect(cl._SQLITE_HOST)) as conn:
                 c = conn.cursor()
 
                 # レコードを読み込み
@@ -163,7 +164,7 @@ class DbSqlite:
             レコード数
         """
         try:
-            with closing(sqlite3.connect(_SQLITE_HOST)) as conn:
+            with closing(sqlite3.connect(cl._SQLITE_HOST)) as conn:
                 c = conn.cursor()
                 # レコード件数
                 sql = "SELECT COUNT(*) FROM Uecs_LRaw;"
