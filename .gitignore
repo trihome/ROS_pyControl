@@ -129,3 +129,6 @@ db/
 # Local Config file
 conf_local.py
 py_control.sh
+*.gz
+*.log
+*.log.*
