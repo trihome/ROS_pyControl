@@ -1,0 +1,21 @@
+#---------------------------------------------------------------------
+#	py_control.logrotate
+#---------------------------------------------------------------------
+# setup:
+#		$ cd /etc/logrotate.d
+#		$ chmod 644 /home/pi/catkin_ws/src/py_control/py_control.logrotate
+#		$ sudo cp ~/catkin_ws/src/py_control/py_control.logrotate ./py_control
+#		$ sudo logrotate -f ./py_control
+# check:
+#   $ logrotate -dv /etc/logrotate.conf
+#---------------------------------------------------------------------
+
+/home/pi/catkin_ws/src/py_control/log/sigTowerDetector.log {
+  daily
+  missingok
+  rotate 15
+  compress
+  delaycompress
+  notifempty
+  copytruncate
+}
