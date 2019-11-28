@@ -95,7 +95,7 @@ class MainProc:
             #
             # ステップ３：CTの電流値
             #
-            # AD0値を読み込み（盤2号はCTセンサはAD0chに入力）
+            # AD0値を読み込み（盤2・3号はCTセンサはAD0chに入力）
             ad = grove_ad(0)
             self.__s.message("< CT     > : %s (x 0.01V)" % (ad.Val_VOLT))
             # データベース書き込み

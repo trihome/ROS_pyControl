@@ -38,14 +38,15 @@ GROVE_AD_CTORDER = ["CT1", "CT2"]
 
 # AD割り当て範囲：監視対象設備のシグナルタワー
 # AD ch 2→R, 3→Y, 4→G, 5→B （４灯まで）
-GROVE_AD_SIGTOWER = range(2, 5)
+GROVE_AD_SIGTOWER = range(2, 6)#←6は含まれない
 GROVE_AD_SIGTOWERORDER = ["RED", "YELLOW", "GREEN", "BLUE"]
 # AD ch 2→R, 3→Y, 4→G, 5→B, 6→W　(5灯まで)
-# GROVE_AD_SIGTOWER = range(2, 5)
+# GROVE_AD_SIGTOWER = range(2, 7)#←7は含まれない
 # GROVE_AD_SIGTOWERORDER = ["RED", "YELLOW", "GREEN", "BLUE", "WHITE"]
 
 # GPIO OUT割り当て範囲：本装置のシグナルタワー
-GPIO_OUT_SIGTOWER = range(4, 8)
+# GPIO ch 4→R, 5→Y, 6→G, 7→B （４灯まで）
+GPIO_OUT_SIGTOWER = range(4, 8)#←8は含まれない
 GPIO_SIGTOWERORDER = ["RED", "YELLOW", "GREEN", "BLUE"]
 
 

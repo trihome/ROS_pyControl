@@ -88,24 +88,24 @@ class Storage:
             state = ("%s%s%s%s%s" %
                      (request.White, request.Blue, request.Green, request.Yellow, request.Red))
             # キューに追加
-            self.__qsigtower.put([state, 5, dtnow])
+            self.__qsigtower.put([state, 4, dtnow])
             # self.A_SigTower(state, 5)
         elif request.Blue >= 0:
             state = ("%s%s%s%s" %
                      (request.Blue, request.Green, request.Yellow, request.Red))
-            self.__qsigtower.put([state, 4, dtnow])
+            self.__qsigtower.put([state, 3, dtnow])
             # self.A_SigTower(state, 4)
         elif request.Green >= 0:
             state = ("%s%s%s" % (request.Green, request.Yellow, request.Red))
-            self.__qsigtower.put([state, 3, dtnow])
+            self.__qsigtower.put([state, 2, dtnow])
             # self.A_SigTower(state, 3)
         elif request.Yellow >= 0:
             state = ("%s%s" % (request.Yellow, request.Red))
-            self.__qsigtower.put([state, 2, dtnow])
+            self.__qsigtower.put([state, 1, dtnow])
             # self.A_SigTower(state, 2)
         elif request.Red >= 0:
             state = ("%s" % (request.Red))
-            self.__qsigtower.put([state, 1, dtnow])
+            self.__qsigtower.put([state, 0, dtnow])
             # self.A_SigTower(state, 1)
         else:
             state = "-"
